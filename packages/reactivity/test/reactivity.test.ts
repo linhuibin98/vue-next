@@ -1,8 +1,8 @@
 import { test, expect } from 'vitest';
-import { reactive } from '../src/reactive';
+import { reactive, ReactiveFlags } from '../src/reactive';
 
-test('reactive instanceof proxy true', () => {
+test('reactive object has proxy flag', () => {
     const target = {a: 1};
     const proxy = reactive(target);
-    expect(proxy instanceof Proxy).toBe(true);
+    expect(proxy[ReactiveFlags.IS_REACTIVE]).toBe(true);
 });
