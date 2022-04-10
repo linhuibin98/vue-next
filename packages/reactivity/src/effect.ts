@@ -34,7 +34,7 @@ class ReactiveEffect<T = any> {
     run() {
         // effect非激活状态，只需要执行fn，不需要进行依赖收集
         if (!this.active) {
-            this.fn();
+            return this.fn();
         }
         // 依赖收集
         // 核心就是将当前的 effect 和 稍后渲染的属性关联在一起
@@ -44,11 +44,18 @@ class ReactiveEffect<T = any> {
             activeEffect = this;
             // 执行回调之前，先清空收集的依赖
             cleanupEffect(this);
-            this.fn(); // 执行fn进行依赖收集,即稍后渲染的属性
+            return this.fn(); // 执行fn进行依赖收集,即稍后渲染的属性
         } finally {
             // 依赖收集之后，activeEffect置为undefined
             // 若存在effect嵌套，则activeEffect交还给父级ReactiveEffect
             activeEffect = this.parent;
+        }
+    }
+
+    stop() {
+        if (this.active) {
+            this.active = false; // 停止reactiveEffect收集
+            cleanupEffect(this); // 清空已经收集的依赖
         }
     }
 }
@@ -65,6 +72,10 @@ export function effect<T = any>(fn: () => T) {
     const _effect = new ReactiveEffect(fn); // 创建响应式effect
     // 默认先执行一次
     _effect.run();
+
+    const runner = _effect.run.bind(_effect);
+    runner.effect = _effect; // 将effect挂载在runner上
+    return runner;
 }
 
 /**
