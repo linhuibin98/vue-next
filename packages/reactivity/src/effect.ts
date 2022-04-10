@@ -28,7 +28,8 @@ class ReactiveEffect<T = any> {
     public deps = [];
     public active = true; // effect默认是激活的状态，表示需要进行依赖收集
     constructor(
-        public fn: () => T
+        public fn: () => T,
+        public scheduler: EffectScheduler | null = null
     ) {}
 
     run() {
@@ -68,8 +69,14 @@ export function cleanupEffect(effect: ReactiveEffect) {
     effect.deps.length = 0;
 }
 
-export function effect<T = any>(fn: () => T) {
-    const _effect = new ReactiveEffect(fn); // 创建响应式effect
+export type EffectScheduler = (...args: any[]) => any
+export interface ReactiveEffectOptions {
+    scheduler?: EffectScheduler
+  }
+
+export function effect<T = any>(fn: () => T, options?: ReactiveEffectOptions) {
+    const scheduler = options?.scheduler ?? null;
+    const _effect = new ReactiveEffect(fn, scheduler); // 创建响应式effect
     // 默认先执行一次
     _effect.run();
 
@@ -156,6 +163,10 @@ export function trigger(target: object, type: 'set', key: string | symbol) {
         if (effect === activeEffect) {
             return;
         }
-        effect.run();
+        if (effect.scheduler) {
+            effect.scheduler();
+        } else {
+            effect.run();
+        }
     });
 }
