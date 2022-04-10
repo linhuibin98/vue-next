@@ -1,2 +1,4 @@
+
 export {reactive} from './reactive';
-export {effect} from './effect';
+export {effect, track} from './effect';
+export {mutableHandlers} from './baseHandlers';

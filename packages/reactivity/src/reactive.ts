@@ -1,4 +1,5 @@
 import { isObject } from '@vue/shared';
+import { mutableHandlers } from './baseHandlers';
 
 // TODO 完善ts类型
 
@@ -9,7 +10,7 @@ export const enum ReactiveFlags {
 // 保存已经代理的对象，原对象最为key，代理对象proxy为value
 const reactiveMap = new WeakMap<any, any>();
 
-export function reactive(target: any) {
+export function reactive<T extends object>(target: T): T{
     // 如果target不是对象，则直接返回target
     if (!isObject(target)) {
         return target;
@@ -24,19 +25,7 @@ export function reactive(target: any) {
         return existingProxy;
     }
 
-    const proxy = new Proxy(target, {
-        get(target, key, receiver) {
-            // 已经代理过的标识
-            if (key === ReactiveFlags.IS_REACTIVE) {
-                return true;
-            }
-            return Reflect.get(target, key, receiver);
-        },
-        set(target, key, value, receiver) {
-
-            return Reflect.set(target, key, value, receiver);
-        }
-    });
+    const proxy = new Proxy(target, mutableHandlers);
     // 保存已经代理的对象
     reactiveMap.set(target, proxy);
 
