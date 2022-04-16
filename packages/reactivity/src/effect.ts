@@ -1,6 +1,6 @@
 
 export let activeEffect: ReactiveEffect | undefined; // 暴露全局，保存当前正在进行的依赖收集的ReactiveEffect
-class ReactiveEffect<T = any> {
+export class ReactiveEffect<T = any> {
     /**
      * parent
      * 解决 effect嵌套的导致activeEffect不正确的问题
@@ -118,6 +118,13 @@ export function track(target: object, type: 'get', key: string | symbol) {
     if (!deps) {
         depsMap.set(key, (deps = new Set()));
     }
+    trackEffects(deps);
+}
+
+export function trackEffects(deps: Set<ReactiveEffect>) {
+    if (!activeEffect) {
+        return;
+    }
     const shouldTrack = !deps.has(activeEffect);
     if (shouldTrack) {
         deps.add(activeEffect);
@@ -136,7 +143,11 @@ export function trigger(target: object, type: 'set', key: string | symbol) {
     if (!depsMap) {
         return;
     }
-    let effects = depsMap.get(key);
+    const effects = depsMap.get(key);
+    triggerEffects(effects);
+}
+
+export function triggerEffects(effects) {
     if (!effects) {
         return;
     }
