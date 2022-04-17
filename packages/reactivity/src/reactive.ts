@@ -16,7 +16,7 @@ export function reactive<T extends object>(target: T): T{
         return target;
     }
     // 如果target是代理对象，不需要重复代理
-    if (target[ReactiveFlags.IS_REACTIVE]) {
+    if (isReactive(target)) {
         return target;
     }
     // 如果target已经被代理过，则直接返回代理对象
@@ -30,4 +30,8 @@ export function reactive<T extends object>(target: T): T{
     reactiveMap.set(target, proxy);
 
     return proxy;
+}
+
+export function isReactive(value: any)  {
+    return Boolean(value && value[ReactiveFlags.IS_REACTIVE])
 }
