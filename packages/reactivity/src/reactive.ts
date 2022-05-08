@@ -32,6 +32,6 @@ export function reactive<T extends object>(target: T): T{
     return proxy;
 }
 
-export function isReactive(value: any)  {
-    return Boolean(value && value[ReactiveFlags.IS_REACTIVE])
+export function isReactive(value: unknown): boolean {  
+    return Boolean(value && value[ReactiveFlags.IS_REACTIVE]);
 }

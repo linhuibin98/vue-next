@@ -1,6 +1,6 @@
 import { isObject, isArray, IfAny } from '@vue/shared';
 import { trackEffects, ReactiveEffect, triggerEffects } from './effect';
-import { reactive } from './reactive';
+import { isReactive, reactive } from './reactive';
 
 declare const RefSymbol: unique symbol;
 
@@ -15,12 +15,12 @@ export interface Ref<T = any> {
 }
 
 export class RefImpl<T> {
-    public _value;
+    private _value;
     public deps: Set<ReactiveEffect> = new Set();
-    public __v_isRef = true;
+    public readonly __v_isRef = true;
 
-    constructor(public rawValue: T) {
-        this._value = toReactive(rawValue);
+    constructor(private _rawValue: T) {
+        this._value = toReactive(_rawValue);
     }
 
     get value(): T {
@@ -29,16 +29,24 @@ export class RefImpl<T> {
     }
 
     set value(newValue: T) {
-        if (newValue !== this.rawValue) {
+        if (newValue !== this._rawValue) {
             this._value = toReactive(newValue);
-            this.rawValue = newValue;
+            this._rawValue = newValue;
             triggerEffects(this.deps);
         }
     }
 }
 
 export function ref<T>(value: T) {
-    return new RefImpl<T>(value);
+    return new RefImpl(value);
+}
+
+export function unref(valueWidthRef) {
+    if (isRef(valueWidthRef)) {
+        return valueWidthRef.value;
+    } else {
+        return valueWidthRef;
+    }
 }
 
 export function toReactive(value) {
@@ -87,4 +95,36 @@ export function toRefs<T extends object>(object: T): ToRefs<T> {
     }
 
     return result;
+}
+
+export type ShallowUnwrapRef<T> = {
+    [K in keyof T]: T[K] extends Ref<infer V>
+      ? V
+      : // if `V` is `unknown` that means it does not extend `Ref` and is undefined
+      T[K] extends Ref<infer V> | undefined
+      ? unknown extends V
+        ? undefined
+        : V | undefined
+      : T[K];
+};
+
+const shallowUnwrapHandlers: ProxyHandler<any> = {
+  get: (target, key, receiver) => unref(Reflect.get(target, key, receiver)),
+  set: (target, key, value, receiver) => {
+    const oldValue = target[key];
+    if (isRef(oldValue) && !isRef(value)) {
+      oldValue.value = value;
+      return true;
+    } else {
+      return Reflect.set(target, key, value, receiver);
+    }
+  }
+}
+
+export function proxyRefs<T extends object>(
+    objectWithRefs: T
+): ShallowUnwrapRef<T> {
+    return isReactive(objectWithRefs) 
+        ? objectWithRefs 
+        : new Proxy(objectWithRefs, shallowUnwrapHandlers);
 }
