@@ -1,4 +1,4 @@
-import { isArray } from '@vue/shared';
+import { isArray, isObject } from '@vue/shared';
 import { createVNode, isVNode } from "./vnode";
 
 /**
@@ -14,12 +14,11 @@ h('div', h('span', null, 'hello'))
 export function h(type, propsChildren, children) {
     const l = arguments.length;
     if (l === 2) {
-        if (isVNode(propsChildren)) {
-            children = [propsChildren];
-            propsChildren = null;
-        } else if (isArray(propsChildren)) {
-            children = propsChildren;
-            propsChildren = null;
+        if (isObject(propsChildren) && !isArray(propsChildren)) {
+            // propsChildren 为对象，则没有 children
+            return createVNode(type, propsChildren);
+        } else { // propsChildren 为 array 或者 string
+            return createVNode(type, null, propsChildren)
         }
     } else if (l === 3) {
         if (!isArray(children)) {

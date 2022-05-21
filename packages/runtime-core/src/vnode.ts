@@ -9,7 +9,7 @@ export function createVNode(type, props, children = null) {
         type,
         shapeFlag,
         key: props && props.key,
-        el: null, // 虚拟节点对应的真实元素
+        el: null, // 虚拟节点对应的真实元素，diff 时会用到
         props,
         children
     };
@@ -17,16 +17,18 @@ export function createVNode(type, props, children = null) {
     if (children) {
         let type = 0;
         if (isArray(children)) {
-            type = ShapeFlags.ARRAY_CHILDREN;
-        }  else {
+            type = ShapeFlags.ARRAY_CHILDREN; // 子标记节点是数组
+        } else {
             children = String(children);
-            type = ShapeFlags.TEXT_CHILDREN;
+            type = ShapeFlags.TEXT_CHILDREN; // 标记子节点是文本
         }
         vnode.shapeFlag |= type;
     }
 
     return vnode;
 }
+
+export const Text = Symbol('Text'); // 文本类型
 
 export function isVNode(value: unknown) {
     return !!(value && value['__v_isVNode']);
