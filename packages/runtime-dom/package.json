@@ -1,5 +1,5 @@
 {
-  "name": "@vue/shared",
+  "name": "@vue/runtime-dom",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,8 +7,9 @@
   "author": "",
   "license": "ISC",
   "buildOptions": {
-    "name": "VueShared",
+    "name": "VueRuntimeDom",
     "formats": [
+      "global",
       "cjs",
       "esm-bundler"
     ]
