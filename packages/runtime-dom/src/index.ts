@@ -1,18 +1,10 @@
+import { createRenderer } from '@vue/runtime-core';
 import { nodeOps } from './nodeOps';
 import { patchProp } from './patchProp';
 
+export * from '@vue/runtime-core';
+
 const renderOptions = Object.assign(nodeOps, {patchProp});
-
-function createRenderer(renderOptions) {
-
-    function render(vnode, container) {
-
-    }
-
-    return {
-        render
-    };
-}
 
 export function render(vnode, container) {
 
