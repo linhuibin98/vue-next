@@ -35,11 +35,11 @@ export function isVNode(value: unknown) {
 }
 
 /**
- * 文本 node
+ * 文本 vnode
  */
 export function normalizeVNode(child) {
     if (isString(child)) {
-        return createVNode(Text, child);
+        return createVNode(Text, null, child);
     }
     return child;
 }
