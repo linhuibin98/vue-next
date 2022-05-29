@@ -196,8 +196,8 @@ export function createRenderer(renderOptions) {
         }
         // 从后往前比相同节点
         while (i <= e1 && i <= e2) { // 有任何一方停止循环，则直接跳出
-            const n1 = c1[i];
-            const n2 = c2[i] = normalizeVNode(c2[i]);
+            const n1 = c1[e1];
+            const n2 = c2[e2] = normalizeVNode(c2[e2]);
             if (isSameVNode(n1, n2)) {
                 patch(n1, n2, el);
             } else {
