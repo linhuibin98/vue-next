@@ -230,6 +230,39 @@ export function createRenderer(renderOptions) {
                 }
             }
         }
+
+        // 乱序对比
+        let s1 = i;
+        let s2 = i;
+        const keyToNewIndexMap = new Map();
+        for (let j = s2; j <= e2; j++) {
+            keyToNewIndexMap.set(c2[j].key, j);
+        }
+        // 循环老的元素看一下新的里面有没有，如果有说明要比较差异，没有要添加到列表中，老的有新的没有要删除
+        const toBePatched = keyToNewIndexMap.size; // 乱序 新的总个数
+        const newIndexToOldIndexMap = new Array(toBePatched).fill(0); // 记录是否patch对比过
+        for (let k = s1; k <= e1; k++) {
+            const oldChild = c1[k];
+            const newIndex = keyToNewIndexMap.get(oldChild.key);
+            if (!newIndex) {
+                unmount(oldChild);
+            } else {
+                // 新的位置对应老的位置，记录已经 patch 过
+                newIndexToOldIndexMap[newIndex - s2] = k + 1;
+                patch(oldChild, c2[newIndex], el);
+            }
+        }
+        // 需要移动位置
+        for (let x = toBePatched - 1; x >= 0; x--) {
+            let index = x + s2;
+            let currentVNode = c2[index];
+            let anchor = index + 1 < c2.length ? c2[index + 1].el : null;
+            if (newIndexToOldIndexMap[x] === 0) { // 新增
+                patch(null, currentVNode, el, anchor);
+            } else { // 已经 patch 对比过 移动位置
+                hostInsert(currentVNode.el, el, anchor);
+            }
+        }
     }
 
     function unmountChildren(children) {
